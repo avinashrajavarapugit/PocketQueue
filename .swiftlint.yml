@@ -1,0 +1,27 @@
+included:
+  - App
+  - Shared
+  - ShareExtension
+  - WidgetExtension
+  - Sources
+  - Tests
+  - UITests
+excluded:
+  - .build
+opt_in_rules:
+  - sorted_imports
+  - empty_count
+  - force_unwrapping
+disabled_rules:
+  - trailing_comma
+  - identifier_name
+  - type_body_length
+  - file_length
+  - function_body_length
+  - opening_brace
+line_length:
+  warning: 140
+  error: 160
+type_name:
+  min_length: 3
+reporter: xcode

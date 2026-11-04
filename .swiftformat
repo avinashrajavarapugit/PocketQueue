@@ -1,0 +1,7 @@
+--swiftversion 6.0
+--indent 4
+--maxwidth 120
+--commas always
+--self remove
+--disable redundantSelf
+--exclude .build,DerivedData,build

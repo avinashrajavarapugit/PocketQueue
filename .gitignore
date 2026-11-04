@@ -1,0 +1,12 @@
+.DS_Store
+.build/
+.swiftpm/
+DerivedData/
+build/
+*.xcresult/
+xcuserdata/
+*.xcuserstate
+Config/Local.xcconfig
+.env
+.env.*
+!.env.example

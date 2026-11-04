@@ -1,0 +1,152 @@
+name: PocketQueue
+options:
+  bundleIdPrefix: com.avinashrajavarapu
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "16.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    TARGETED_DEVICE_FAMILY: "1,2"
+    APP_GROUP_IDENTIFIER: group.com.avinashrajavarapu.pocketqueue
+packages:
+  PocketQueueCore:
+    path: .
+targetTemplates:
+  application:
+    type: application
+    platform: iOS
+    sources:
+      - App
+      - Shared
+      - path: Resources/Assets.xcassets
+      - path: Resources/PrivacyInfo.xcprivacy
+    dependencies:
+      - package: PocketQueueCore
+    settings:
+      base:
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+    info:
+      path: Config/App-Info.plist
+      properties:
+        CFBundleDisplayName: PocketQueue
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        CFBundleURLTypes:
+          - CFBundleURLSchemes: [pocketqueue]
+        PocketQueueAppGroup: $(APP_GROUP_IDENTIFIER)
+targets:
+  PocketQueue:
+    templates: [application]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.avinashrajavarapu.pocketqueue
+    entitlements:
+      path: Config/PocketQueue.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - $(APP_GROUP_IDENTIFIER)
+    dependencies:
+      - target: PocketQueueShare
+      - target: PocketQueueWidget
+  PocketQueueLocal:
+    templates: [application]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.avinashrajavarapu.pocketqueue.local
+        APP_GROUP_IDENTIFIER: ""
+  PocketQueueShare:
+    type: app-extension
+    platform: iOS
+    sources: [ShareExtension, Shared, Resources/PrivacyInfo.xcprivacy]
+    dependencies:
+      - package: PocketQueueCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.avinashrajavarapu.pocketqueue.share
+        APPLICATION_EXTENSION_API_ONLY: true
+    info:
+      path: Config/Share-Info.plist
+      properties:
+        CFBundleDisplayName: Save to PocketQueue
+        PocketQueueAppGroup: $(APP_GROUP_IDENTIFIER)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsWebURLWithMaxCount: 1
+              NSExtensionActivationSupportsText: true
+    entitlements:
+      path: Config/Share.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - $(APP_GROUP_IDENTIFIER)
+  PocketQueueWidget:
+    type: app-extension
+    platform: iOS
+    sources: [WidgetExtension, Shared, Resources/PrivacyInfo.xcprivacy]
+    dependencies:
+      - package: PocketQueueCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.avinashrajavarapu.pocketqueue.widget
+        APPLICATION_EXTENSION_API_ONLY: true
+    info:
+      path: Config/Widget-Info.plist
+      properties:
+        CFBundleDisplayName: Read next
+        PocketQueueAppGroup: $(APP_GROUP_IDENTIFIER)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: Config/Widget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - $(APP_GROUP_IDENTIFIER)
+  PocketQueueTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [Tests/PocketQueueCoreTests]
+    dependencies:
+      - package: PocketQueueCore
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true
+  PocketQueueUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: PocketQueue
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true
+schemes:
+  PocketQueue:
+    build:
+      targets:
+        PocketQueue: all
+        PocketQueueTests: [test]
+        PocketQueueUITests: [test]
+    test:
+      gatherCoverageData: true
+      targets:
+        - PocketQueueTests
+        - PocketQueueUITests
+  PocketQueueLocal:
+    build:
+      targets:
+        PocketQueueLocal: all
