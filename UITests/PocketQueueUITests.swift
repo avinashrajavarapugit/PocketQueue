@@ -139,6 +139,62 @@ final class PocketQueueUITests: XCTestCase {
         add(screenshot)
     }
 
+    func testHomeScreenWidgetDisplaysAndOpensBookmark() {
+        app.terminate()
+        app.launchArguments = []
+        app.launch()
+        let host = "widget-\(UUID().uuidString.prefix(8).lowercased()).example"
+        let url = "https://\(host)/"
+        saveLink(url, note: "Opened from the actual Home Screen widget.")
+        let saved = app.staticTexts[host].firstMatch
+        XCTAssertTrue(saved.waitForExistence(timeout: 10), app.debugDescription)
+        saved.tap()
+        app.buttons["toggleFavoriteButton"].tap()
+        XCTAssertTrue(app.buttons["Remove favorite"].exists)
+
+        XCUIDevice.shared.press(.home)
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        let icon = springboard.icons["PocketQueue"].firstMatch
+        for _ in 0 ..< 3 where !icon.exists {
+            springboard.swipeLeft()
+        }
+        XCTAssertTrue(icon.waitForExistence(timeout: 5), springboard.debugDescription)
+        icon.press(forDuration: 1.2)
+        let editHome = springboard.buttons["Edit Home Screen"]
+        XCTAssertTrue(editHome.waitForExistence(timeout: 5), springboard.debugDescription)
+        editHome.tap()
+        let addWidget = springboard.buttons.matching(NSPredicate(format: "label ENDSWITH %@", "Add Widget")).firstMatch
+        if !addWidget.exists {
+            springboard.buttons["Edit"].tap()
+        }
+        XCTAssertTrue(addWidget.waitForExistence(timeout: 5), springboard.debugDescription)
+        addWidget.tap()
+        let search = springboard.searchFields["Search Widgets"]
+        XCTAssertTrue(search.waitForExistence(timeout: 5), springboard.debugDescription)
+        search.tap()
+        search.typeText("PocketQueue")
+        let result = springboard.staticTexts["PocketQueue"].firstMatch
+        XCTAssertTrue(result.waitForExistence(timeout: 5), springboard.debugDescription)
+        result.tap()
+        XCTAssertTrue(addWidget.waitForExistence(timeout: 5), springboard.debugDescription)
+        addWidget.tap()
+        let done = springboard.buttons["Done"]
+        XCTAssertTrue(done.waitForExistence(timeout: 5), springboard.debugDescription)
+        done.tap()
+
+        let widget = springboard.staticTexts[host].firstMatch
+        XCTAssertTrue(widget.waitForExistence(timeout: 30), springboard.debugDescription)
+        let screenshot = XCTAttachment(screenshot: springboard.screenshot())
+        screenshot.name = "Actual Home Screen widget"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+        app.terminate()
+        widget.tap()
+        XCTAssertTrue(app.buttons["openOriginalButton"].waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertTrue(app.staticTexts[url].exists)
+        XCTAssertTrue(app.staticTexts["Opened from the actual Home Screen widget."].exists)
+    }
+
     private func saveLink(_ url: String, note: String = "") {
         app.buttons["addBookmarkButton"].tap()
         let input = app.textFields["urlField"]

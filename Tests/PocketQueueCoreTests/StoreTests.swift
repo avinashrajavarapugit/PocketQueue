@@ -97,6 +97,36 @@ struct StoreTests {
         await #expect(throws: (any Error).self) { try await fixture.store.all() }
         #expect(try Data(contentsOf: fixture.databaseURL) == Data("not a database".utf8))
     }
+
+    @Test func journalInitializationContentionTimesOutWithoutLosingData() async throws {
+        let fixture = try StoreFixture()
+        defer { fixture.remove() }
+        var database: OpaquePointer?
+        try #require(sqlite3_open(fixture.databaseURL.path, &database) == SQLITE_OK)
+        defer { sqlite3_close(database) }
+        try #require(sqlite3_exec(
+            database,
+            "CREATE TABLE sentinel (value TEXT); INSERT INTO sentinel VALUES ('keep'); BEGIN EXCLUSIVE",
+            nil, nil, nil
+        ) == SQLITE_OK)
+        let started = ContinuousClock.now
+        await #expect(throws: BookmarkError.storage("PRAGMA journal_mode=WAL: database is locked")) {
+            try await fixture.store.all()
+        }
+        let elapsed = started.duration(to: .now)
+        #expect(elapsed >= .seconds(3))
+        #expect(elapsed < .seconds(6))
+        try #require(sqlite3_exec(database, "COMMIT", nil, nil, nil) == SQLITE_OK)
+        let saved = try await fixture.store.save(url: BookmarkURL.parse("example.com/after-contention"))
+        #expect(saved.inserted)
+        #expect(try await fixture.store.all().count == 1)
+        var statement: OpaquePointer?
+        try #require(sqlite3_prepare_v2(database, "SELECT value FROM sentinel", -1, &statement, nil) == SQLITE_OK)
+        defer { sqlite3_finalize(statement) }
+        #expect(sqlite3_step(statement) == SQLITE_ROW)
+        let text = try #require(sqlite3_column_text(statement, 0))
+        #expect(String(cString: text) == "keep")
+    }
 }
 
 struct StoreFixture: Sendable {

@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 import SQLite3
 
 public actor BookmarkStore: BookmarkStoring {
@@ -88,8 +89,8 @@ private final class SQLiteConnection {
             throw error
         }
         do {
+            try enableWriteAheadLogging()
             sqlite3_busy_timeout(handle, 3000)
-            try execute("PRAGMA journal_mode=WAL")
             try execute("PRAGMA synchronous=FULL")
             try transaction {
                 let version = try schemaVersion()
@@ -114,6 +115,27 @@ private final class SQLiteConnection {
     }
 
     deinit { sqlite3_close(handle) }
+
+    private func enableWriteAheadLogging() throws {
+        let deadline = ContinuousClock.now.advanced(by: .seconds(3))
+        var reportedContention = false
+        while true {
+            let result = sqlite3_exec(handle, "PRAGMA journal_mode=WAL", nil, nil, nil)
+            if result == SQLITE_OK {
+                return
+            }
+            guard result == SQLITE_BUSY, ContinuousClock.now < deadline else {
+                throw failure(operation: "PRAGMA journal_mode=WAL")
+            }
+            // SQLite can bypass its busy handler when concurrent connections promote the journal mode.
+            if !reportedContention {
+                Logger(subsystem: "com.avinashrajavarapu.pocketqueue", category: "storage")
+                    .debug("Waiting for a concurrent database initialization")
+                reportedContention = true
+            }
+            sqlite3_sleep(10)
+        }
+    }
 
     func transaction<T>(_ body: () throws -> T) throws -> T {
         try execute("BEGIN IMMEDIATE")
@@ -180,7 +202,9 @@ private final class SQLiteConnection {
     }
 
     private func execute(_ sql: String) throws {
-        guard sqlite3_exec(handle, sql, nil, nil, nil) == SQLITE_OK else { throw failure() }
+        guard sqlite3_exec(handle, sql, nil, nil, nil) == SQLITE_OK else {
+            throw failure(operation: sql)
+        }
     }
 
     private func prepare(_ sql: String) throws -> OpaquePointer {
@@ -195,7 +219,8 @@ private final class SQLiteConnection {
         guard sqlite3_bind_text(statement, index, text, -1, transient) == SQLITE_OK else { throw failure() }
     }
 
-    private func failure() -> BookmarkError {
-        .storage(handle.map { String(cString: sqlite3_errmsg($0)) } ?? "Unable to open database")
+    private func failure(operation: String = "SQLite operation") -> BookmarkError {
+        let detail = handle.map { String(cString: sqlite3_errmsg($0)) } ?? "Unable to open database"
+        return .storage("\(operation): \(detail)")
     }
 }

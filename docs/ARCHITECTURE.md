@@ -28,6 +28,11 @@ For this project, explicit short transactions and cross-process writes are the i
 The app and share extension can save simultaneously. WAL, a busy timeout, unique URL constraint, and `BEGIN IMMEDIATE`
 provide coordination that a Swift actor alone cannot provide across processes.
 
+Simultaneous first opens can make `PRAGMA journal_mode=WAL` return `SQLITE_BUSY` without waiting for SQLite's
+normal busy handler. Initialization retries only that idempotent operation, with a three-second monotonic deadline
+and short waits. Other failures surface immediately; user mutations are not blindly replayed. A regression test
+holds an exclusive lock, verifies the bounded failure, then checks that saving recovers without erasing existing data.
+
 The cost is a small C API wrapper and explicit schema management. SwiftData/Core Data would be reasonable alternatives,
 especially for richer relational queries and UI-driven model observation.
 

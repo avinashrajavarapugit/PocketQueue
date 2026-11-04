@@ -115,6 +115,8 @@ If a custom XcodeGen installation reports missing base settings, use a complete 
 - Automated UI flows for save, read/favorite, relaunch, search, failed preview, editing, validation, and deletion.
 - A real share-sheet integration test that saves in the extension and verifies the main app's shared library.
 - Cold-launch widget deep-link navigation and accessibility-size text layouts.
+- Actual Home Screen widget installation, rendered bookmark content, and tap-through after terminating the app.
+- Bounded recovery from simultaneous first-open SQLite journal initialization.
 
 Network tests use `URLProtocol` fixtures. UI tests use an isolated database and explicitly injected fake metadata.
 Normal app launches use the real website-preview client. Test hooks are excluded from Release builds.
