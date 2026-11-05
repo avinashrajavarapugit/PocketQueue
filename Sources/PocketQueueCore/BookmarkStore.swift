@@ -420,7 +420,8 @@ final class SQLiteConnection {
         }
     }
 
-    func transaction<T>(_ body: () throws -> T) throws -> T {
+    // Keep the connection and callback on the caller's executor without making SQLiteConnection Sendable.
+    func transaction<T>(isolation _: isolated (any Actor)? = #isolation, _ body: () throws -> T) throws -> T {
         try execute("BEGIN IMMEDIATE")
         do {
             let result = try body()
