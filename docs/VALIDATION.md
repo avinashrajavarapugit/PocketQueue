@@ -1,6 +1,27 @@
 # Validation and demo guide
 
-## Verified locally
+## Backend integration verification
+
+On November 5, 2026:
+
+- Full iOS run: **92 passing tests, zero failures**, with two credential-dependent live cases intentionally gated.
+- The live native Swift test separately used the real Auth SDK and Keychain with two local databases, verified
+  cross-device sync, offline conflicts, explicit resolution, deletion propagation, and another account's isolation.
+- The live iOS test separately authenticated through the actual SDK, saved and synced a bookmark, and signed out.
+  An independent RLS-protected API read confirmed that the iOS note reached hosted Postgres.
+- Hosted backend tests verified query/mutation isolation, rejected anonymous and forged tokens, prohibited direct
+  table writes, stable idempotency receipts, stale revisions, duplicate URLs, tombstones, pagination, session refresh,
+  and rejection of account deletion from an old session until reauthentication.
+- SQL migrations and declared Auth/API configuration were deployed to the configured project.
+- All ephemeral hosted users and private credential fixture files were removed after verification.
+- Code review found session-recovery data-loss paths; they were fixed with preserved outboxes, same-account
+  reauthentication, and an actionable guest-recovery screen, with regression coverage.
+
+The default test suite includes deterministic auth/UI fixtures, not real passwords. See
+[Backend setup and verification](BACKEND.md) for the opt-in native/hosted commands and SMTP limitations.
+Actual inbox delivery, physical-device signing, and App Store submission are not claimed by these checks.
+
+## Original local-only baseline
 
 On November 4, 2026, using Xcode 27.1 and an isolated iPhone 16 / iOS 18.6 simulator:
 
@@ -49,6 +70,8 @@ The repository includes:
 - XCTest UI flows that use accessibility identifiers rather than screen-coordinate taps.
 - A strict SwiftLint gate.
 - A CI build of the app, share extension, widget, and standalone variant.
+- A disposable local Supabase CI stack exercising real Auth, GraphQL, and SQL authorization without production secrets.
+- Auth/PKCE, schema migration, owner-scoped outbox, stale acknowledgements, conflict resolution, and recovery tests.
 
 Ordinary UI tests isolate their data using a random test identifier. Their fake website metadata is deliberately injected;
 passing those tests does not establish that every external website can be previewed. System sharing, widget, and
@@ -71,6 +94,9 @@ Use an ordinary launch, not `--ui-testing`, for live-network and extension check
 8. The small Read next widget and tap-through are automated above; also check the medium layout before release.
 9. Check empty, pending, failed, and populated states in light/dark mode and accessibility text sizes.
 10. Use VoiceOver to navigate the library, add form, details, and destructive confirmation.
+11. Confirm signup/recovery email delivery with your configured SMTP provider and an actual inbox.
+12. Sign into the same account on two devices and check an offline edit conflict; use Sign in again rather than
+    destructive sign-out when testing session expiry.
 
 ## Performance and diagnostics
 
@@ -87,7 +113,7 @@ No production performance numbers or production crash-monitoring claims are made
 2. Relaunch and find the bookmark through local search.
 3. Show notes/favorite/read state and a widget deep link.
 4. Open the concurrent-writer and late-metadata tests.
-5. Explain one deliberate limit: local-only data, bounded previews, or system-controlled widget refresh.
+5. Explain one deliberate limit: opt-in account libraries, paginated full reconciliation, or system-controlled widget refresh.
 
 ## Release boundary
 

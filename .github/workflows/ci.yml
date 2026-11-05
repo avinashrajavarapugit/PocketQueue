@@ -14,6 +14,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: supabase/setup-cli@v1
+        with:
+          version: "3.0.0"
+      - name: Start isolated local backend
+        run: |
+          if ! supabase start --exclude studio,imgproxy,realtime,storage-api,edge-runtime,logflare,vector,supavisor > "$RUNNER_TEMP/supabase-start.log" 2>&1; then
+            grep -iE 'error|failed|fatal' "$RUNNER_TEMP/supabase-start.log" || true
+            exit 1
+          fi
+      - name: Apply all migrations to the local test database
+        run: supabase db reset --yes
+      - name: Verify Auth, GraphQL, RLS and synchronization contracts
+        run: node scripts/backend-integration.mjs --local
+      - name: Stop local test services
+        if: always()
+        run: supabase stop --no-backup
   validate:
     runs-on: macos-15
     timeout-minutes: 30

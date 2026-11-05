@@ -4,19 +4,45 @@ import SQLite3
 
 public actor BookmarkStore: BookmarkStoring {
     private let databaseURL: URL
+    public nonisolated let accountID: UUID?
 
-    public init(databaseURL: URL) {
+    public init(databaseURL: URL, accountID: UUID? = nil) {
         self.databaseURL = databaseURL
+        self.accountID = accountID
+    }
+
+    public static func activeAccountID(databaseURL: URL) throws -> UUID? {
+        try open(databaseURL).activeAccountID()
     }
 
     public func all() throws -> [Bookmark] {
-        try connection().bookmarks()
+        let database = try connection()
+        return try database.transaction {
+            try requireActiveAccount(database)
+            if let accountID {
+                return try database.cloudRecords(owner: accountID).filter { !$0.isDeleted }.map(\.bookmark)
+            }
+            return try database.bookmarks()
+        }
     }
 
     public func save(url: URL, note: String = "", tags: [String] = []) throws -> SaveResult {
         let canonicalURL = try BookmarkURL.parse(url.absoluteString)
         let database = try connection()
         return try database.transaction {
+            try requireActiveAccount(database)
+            if let accountID {
+                let existing = try database.cloudRecords(owner: accountID).first { $0.bookmark.url == canonicalURL }
+                if let existing, !existing.isDeleted {
+                    return SaveResult(bookmark: existing.bookmark, inserted: false)
+                }
+                let bookmark = Bookmark(
+                    id: existing?.bookmark.id ?? UUID(), url: canonicalURL, note: note, tags: tags,
+                    createdAt: existing?.bookmark.createdAt ?? .now
+                )
+                try enqueue(bookmark, version: existing?.version ?? 0, deleted: false, in: database, owner: accountID)
+                return SaveResult(bookmark: bookmark, inserted: true)
+            }
             if let existing = try database.bookmarks().first(where: { $0.url == canonicalURL }) {
                 return SaveResult(bookmark: existing, inserted: false)
             }
@@ -29,7 +55,12 @@ public actor BookmarkStore: BookmarkStoring {
     public func update(id: UUID, change: BookmarkChange) throws {
         let database = try connection()
         try database.transaction {
-            guard var bookmark = try database.bookmarks().first(where: { $0.id == id }) else {
+            try requireActiveAccount(database)
+            let cloudRecord = try accountID.flatMap { owner in
+                try database.cloudRecords(owner: owner).first { $0.bookmark.id == id && !$0.isDeleted }
+            }
+            let saved = try accountID == nil ? database.bookmarks().first { $0.id == id } : cloudRecord?.bookmark
+            guard var bookmark = saved else {
                 throw BookmarkError.missingBookmark
             }
             switch change {
@@ -52,16 +83,41 @@ public actor BookmarkStore: BookmarkStoring {
                 bookmark.metadataState = .pending
                 bookmark.metadataMessage = nil
             }
-            try database.write(bookmark)
+            if let accountID {
+                try enqueue(
+                    bookmark,
+                    version: cloudRecord?.version ?? 0,
+                    deleted: false,
+                    in: database,
+                    owner: accountID
+                )
+            } else {
+                try database.write(bookmark)
+            }
         }
     }
 
     public func delete(id: UUID) throws {
         let database = try connection()
-        try database.delete(id)
+        try database.transaction {
+            try requireActiveAccount(database)
+            if let accountID {
+                guard let record = try database.cloudRecords(owner: accountID).first(where: { $0.bookmark.id == id })
+                else {
+                    throw BookmarkError.missingBookmark
+                }
+                try enqueue(record.bookmark, version: record.version, deleted: true, in: database, owner: accountID)
+            } else {
+                try database.delete(id)
+            }
+        }
     }
 
     private func connection() throws -> SQLiteConnection {
+        try Self.open(databaseURL)
+    }
+
+    private static func open(_ databaseURL: URL) throws -> SQLiteConnection {
         let directory = databaseURL.deletingLastPathComponent()
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         #if os(iOS)
@@ -72,10 +128,220 @@ public actor BookmarkStore: BookmarkStoring {
         #endif
         return try SQLiteConnection(url: databaseURL)
     }
+
+    public func activateAccount(_ id: UUID?) throws -> BookmarkStore {
+        let database = try connection()
+        try database.transaction { try database.setActiveAccount(id) }
+        return BookmarkStore(databaseURL: databaseURL, accountID: id)
+    }
+
+    public func signOutAndRemoveAccountCache() throws -> BookmarkStore {
+        let database = try connection()
+        try database.transaction {
+            try requireActiveAccount(database)
+            if let accountID {
+                try database.removeAccount(accountID)
+            }
+            try database.setActiveAccount(nil)
+        }
+        return BookmarkStore(databaseURL: databaseURL)
+    }
+
+    public func importGuestBookmarks() throws -> Int {
+        let owner = try requireCloudAccount()
+        let database = try connection()
+        return try database.transaction {
+            try requireActiveAccount(database)
+            let existingURLs = try Set(database.cloudRecords(owner: owner).map(\.bookmark.url))
+            let guests = try database.bookmarks().filter { !existingURLs.contains($0.url) }
+            for bookmark in guests {
+                try enqueue(bookmark, version: 0, deleted: false, in: database, owner: owner)
+            }
+            return guests.count
+        }
+    }
+
+    public func pendingChanges() throws -> [PendingChange] {
+        let owner = try requireCloudAccount()
+        let database = try connection()
+        return try database.transaction {
+            try requireActiveAccount(database)
+            return try database.pending(owner: owner)
+        }
+    }
+
+    public func conflicts() throws -> [SyncConflict] {
+        let owner = try requireCloudAccount()
+        let database = try connection()
+        return try database.transaction {
+            try requireActiveAccount(database)
+            let pending = try database.pending(owner: owner)
+            let conflicts = try database.conflictRecords(owner: owner)
+            return pending.compactMap { change in
+                guard let conflict = conflicts.first(where: { $0.id == change.id }) else { return nil }
+                return SyncConflict(local: change, remote: conflict.remote)
+            }
+        }
+    }
+
+    public func acknowledge(_ sent: PendingChange, result: MutationResult) throws {
+        let owner = try requireCloudAccount()
+        let database = try connection()
+        try database.transaction {
+            try requireActiveAccount(database)
+            guard let current = try database.pending(owner: owner).first(where: { $0.id == sent.id }) else { return }
+            if let record = result.record, record.version <= 0 {
+                throw SyncError.invalidResponse
+            }
+            if result.status == .conflict {
+                if let record = result.record, record.version >= current.baseVersion,
+                   record.isDeleted == current.isDeleted, record.bookmark.hasSameContent(as: current.bookmark)
+                {
+                    try database.writeCloud(record, owner: owner)
+                    try database.removePending(current.id, owner: owner)
+                    try database.removeConflict(current.id, owner: owner)
+                    return
+                }
+                if current.operationID != sent.operationID,
+                   (result.record?.version ?? 0) <= current.baseVersion
+                {
+                    return
+                }
+                try database.writeConflict(StoredConflict(id: sent.id, remote: result.record), owner: owner)
+                return
+            }
+            guard let record = result.record, record.version > 0, record.bookmark.id == sent.id else {
+                throw SyncError.invalidResponse
+            }
+            guard current.baseVersion <= record.version else { return }
+            if current.operationID == sent.operationID {
+                try database.writeCloud(record, owner: owner)
+                try database.removePending(sent.id, owner: owner)
+                try database.removeConflict(sent.id, owner: owner)
+            } else {
+                // Acknowledging an older request must never erase a newer edit or delete.
+                let rebased = PendingChange(
+                    operationID: current.operationID, bookmark: current.bookmark,
+                    baseVersion: record.version, isDeleted: current.isDeleted
+                )
+                try database.writeCloud(
+                    RemoteBookmark(bookmark: current.bookmark, version: record.version, isDeleted: current.isDeleted),
+                    owner: owner
+                )
+                try database.writePending(rebased, owner: owner)
+            }
+        }
+    }
+
+    public func integrate(_ records: [RemoteBookmark]) throws {
+        let owner = try requireCloudAccount()
+        let database = try connection()
+        try database.transaction {
+            try requireActiveAccount(database)
+            for record in records {
+                guard record.version > 0 else { throw SyncError.invalidResponse }
+                try Self.validateCloudBookmark(record.bookmark)
+                let pending = try database.pending(owner: owner).first {
+                    $0.id == record.bookmark.id || $0.bookmark.url == record.bookmark.url
+                }
+                if let pending {
+                    if record.version >= pending.baseVersion, record.isDeleted == pending.isDeleted,
+                       record.bookmark.hasSameContent(as: pending.bookmark)
+                    {
+                        try database.writeCloud(record, owner: owner)
+                        try database.removePending(pending.id, owner: owner)
+                        try database.removeConflict(pending.id, owner: owner)
+                        continue
+                    }
+                    if pending.id != record.bookmark.id || record.version > pending.baseVersion {
+                        try database.writeConflict(StoredConflict(id: pending.id, remote: record), owner: owner)
+                    }
+                    continue
+                }
+                let existing = try database.cloudRecords(owner: owner).first {
+                    $0.bookmark.id == record.bookmark.id || $0.bookmark.url == record.bookmark.url
+                }
+                if let existing, existing.bookmark.id == record.bookmark.id, existing.version > record.version {
+                    continue
+                }
+                if let existing, existing.bookmark.id != record.bookmark.id {
+                    try database.removeCloud(existing.bookmark.id, owner: owner)
+                }
+                try database.writeCloud(record, owner: owner)
+            }
+        }
+    }
+
+    public func resolveConflict(
+        _ id: UUID, using resolution: ConflictResolution, expectedRemoteVersion: Int64? = nil
+    ) throws {
+        let owner = try requireCloudAccount()
+        let database = try connection()
+        try database.transaction {
+            try requireActiveAccount(database)
+            guard let pending = try database.pending(owner: owner).first(where: { $0.id == id }),
+                  let conflict = try database.conflictRecords(owner: owner).first(where: { $0.id == id })
+            else {
+                throw BookmarkError.missingBookmark
+            }
+            if let expectedRemoteVersion, expectedRemoteVersion != (conflict.remote?.version ?? 0) {
+                throw SyncError.conflictChanged
+            }
+            try database.removePending(id, owner: owner)
+            try database.removeConflict(id, owner: owner)
+            try database.removeCloud(id, owner: owner)
+            switch resolution {
+            case .useCloud:
+                if let remote = conflict.remote {
+                    try database.writeCloud(remote, owner: owner)
+                }
+            case .keepDevice:
+                var bookmark = pending.bookmark
+                if let remote = conflict.remote, remote.bookmark.id != id {
+                    bookmark = bookmark.replacingIdentity(with: remote.bookmark)
+                }
+                try enqueue(
+                    bookmark, version: conflict.remote?.version ?? 0, deleted: pending.isDeleted,
+                    in: database, owner: owner
+                )
+            }
+        }
+    }
+
+    private func enqueue(
+        _ bookmark: Bookmark, version: Int64, deleted: Bool, in database: SQLiteConnection, owner: UUID
+    ) throws {
+        try Self.validateCloudBookmark(bookmark)
+        try database.writeCloud(RemoteBookmark(bookmark: bookmark, version: version, isDeleted: deleted), owner: owner)
+        try database.writePending(
+            PendingChange(bookmark: bookmark, baseVersion: version, isDeleted: deleted),
+            owner: owner
+        )
+    }
+
+    private func requireActiveAccount(_ database: SQLiteConnection) throws {
+        guard try database.activeAccountID() == accountID else { throw SyncError.accountChanged }
+    }
+
+    private func requireCloudAccount() throws -> UUID {
+        guard let accountID else { throw SyncError.accountRequired }
+        return accountID
+    }
+
+    private static func validateCloudBookmark(_ bookmark: Bookmark) throws {
+        _ = try BookmarkURL.parse(bookmark.url.absoluteString)
+        guard bookmark.note.utf8.count <= 20000, bookmark.title.utf8.count <= 1000,
+              bookmark.url.absoluteString.utf8.count <= 8192, bookmark.tags.count <= 32,
+              bookmark.tags.allSatisfy({ $0.utf8.count <= 80 })
+        else {
+            throw SyncError
+                .invalidBookmark("This bookmark is too large to sync. Use a note under 20 KB and up to 32 short tags.")
+        }
+    }
 }
 
 /// Connections never cross suspension points. SQLite transactions protect app/extension writes across processes.
-private final class SQLiteConnection {
+final class SQLiteConnection {
     private var handle: OpaquePointer?
     private let transient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
@@ -94,7 +360,7 @@ private final class SQLiteConnection {
             try execute("PRAGMA synchronous=FULL")
             try transaction {
                 let version = try schemaVersion()
-                guard version <= 1 else { throw BookmarkError.unsupportedDatabase(version) }
+                guard version <= 2 else { throw BookmarkError.unsupportedDatabase(version) }
                 if version == 0 {
                     try execute("""
                     CREATE TABLE IF NOT EXISTS bookmarks (
@@ -105,6 +371,23 @@ private final class SQLiteConnection {
                     )
                     """)
                     try execute("PRAGMA user_version=1")
+                }
+                if version < 2 {
+                    try execute("""
+                    CREATE TABLE active_account (singleton INTEGER PRIMARY KEY CHECK(singleton=1), account_id TEXT);
+                    INSERT INTO active_account(singleton, account_id) VALUES (1, NULL);
+                    CREATE TABLE cloud_bookmarks (
+                        owner_id TEXT NOT NULL, id TEXT NOT NULL, url TEXT NOT NULL, created_at REAL NOT NULL,
+                        payload BLOB NOT NULL, PRIMARY KEY(owner_id, id), UNIQUE(owner_id, url)
+                    );
+                    CREATE TABLE pending_changes (
+                        owner_id TEXT NOT NULL, id TEXT NOT NULL, payload BLOB NOT NULL, PRIMARY KEY(owner_id, id)
+                    );
+                    CREATE TABLE sync_conflicts (
+                        owner_id TEXT NOT NULL, id TEXT NOT NULL, payload BLOB NOT NULL, PRIMARY KEY(owner_id, id)
+                    );
+                    PRAGMA user_version=2;
+                    """)
                 }
             }
         } catch {
@@ -201,13 +484,13 @@ private final class SQLiteConnection {
         return Int(sqlite3_column_int(statement, 0))
     }
 
-    private func execute(_ sql: String) throws {
+    func execute(_ sql: String) throws {
         guard sqlite3_exec(handle, sql, nil, nil, nil) == SQLITE_OK else {
             throw failure(operation: sql)
         }
     }
 
-    private func prepare(_ sql: String) throws -> OpaquePointer {
+    func prepare(_ sql: String) throws -> OpaquePointer {
         var statement: OpaquePointer?
         guard sqlite3_prepare_v2(handle, sql, -1, &statement, nil) == SQLITE_OK, let statement else {
             throw failure()
@@ -215,11 +498,11 @@ private final class SQLiteConnection {
         return statement
     }
 
-    private func bind(_ text: String, at index: Int32, to statement: OpaquePointer) throws {
+    func bind(_ text: String, at index: Int32, to statement: OpaquePointer) throws {
         guard sqlite3_bind_text(statement, index, text, -1, transient) == SQLITE_OK else { throw failure() }
     }
 
-    private func failure(operation: String = "SQLite operation") -> BookmarkError {
+    func failure(operation: String = "SQLite operation") -> BookmarkError {
         let detail = handle.map { String(cString: sqlite3_errmsg($0)) } ?? "Unable to open database"
         return .storage("\(operation): \(detail)")
     }

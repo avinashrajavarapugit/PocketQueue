@@ -7,21 +7,27 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		050DD639D9067862D8A757DE /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B310D15AD5C2618454ECB2FA /* AccountView.swift */; };
 		0595342C74085D83735BA98B /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E607C383E8055A963FB5E2E3 /* LibraryView.swift */; };
 		0D18593D99F8CF361DAA34FE /* PocketQueueShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 08991B8E634F0790E592B4A8 /* PocketQueueShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		0DF36C0A5E17617922A1E6C3 /* PocketQueueWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 31048D341E088DEA3E65A8F2 /* PocketQueueWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		0FA04CE8A339FC16D8E7C869 /* BookmarkRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE965A48E76BC2424CA765F1 /* BookmarkRow.swift */; };
+		17F0158A58A879AB8E8DB7CB /* GraphQLClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D67ACC3F1ABC3E3AE83955CD /* GraphQLClientTests.swift */; };
 		19148EF7EAE0FD214904A328 /* StoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A676610B36F9EDE66AB41A12 /* StoreTests.swift */; };
+		19ADE36523988BADDDC46B28 /* AuthSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C82235ED3CCE57992FE3290 /* AuthSessionTests.swift */; };
 		1B385C01008386580392000D /* ImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112386EFB434B5FB66E6C701 /* ImageLoader.swift */; };
 		1BE94AC3A0ECF79D4F80B57F /* AddBookmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F94A46ED234E6961A02B1FBA /* AddBookmarkView.swift */; };
 		1D50DAFAF49DCF8394FBE2A1 /* ThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A861172E90499B43A6ABFFB /* ThumbnailView.swift */; };
 		1E2EF61E3C89E010C3F95D73 /* ThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A861172E90499B43A6ABFFB /* ThumbnailView.swift */; };
 		1E774D906E8AE08BCB023AD4 /* MetadataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682DC1B7FE33FDF656E455A9 /* MetadataTests.swift */; };
+		1EF44BA27E60B50119B0CB43 /* AuthStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66D91CC231B69E21901AA9ED /* AuthStorageTests.swift */; };
 		20D26385A7246EDA74D9389A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3E3CC11529DD769D5F6E52 /* SettingsView.swift */; };
 		226014E4255172BBAA71F2EC /* PocketQueueWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = B23A5889CB4EF3B806C38AFF /* PocketQueueWidget.swift */; };
+		237668B76FDE06E994198658 /* Backend.json in Resources */ = {isa = PBXBuildFile; fileRef = C8AA30A3F1F0D9C7E78CFE16 /* Backend.json */; };
 		2DDC8014B7B9B7F42127737E /* PocketQueueCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8997FB3D961831DB9BF3EF77 /* PocketQueueCore */; };
 		39C864EADB276CB541DA6C7B /* SharedEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798DB0DEB2791DC2473654C8 /* SharedEnvironment.swift */; };
 		3A26D6DC9FEBAEE451501EBD /* AddBookmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F94A46ED234E6961A02B1FBA /* AddBookmarkView.swift */; };
+		3CA48B3A5056274DEBD1ACD5 /* Backend.json in Resources */ = {isa = PBXBuildFile; fileRef = C8AA30A3F1F0D9C7E78CFE16 /* Backend.json */; };
 		4625885848C50A4C0FBDEE29 /* PocketQueueCore in Frameworks */ = {isa = PBXBuildFile; productRef = A8DC9DE04C03BB8EA269585F /* PocketQueueCore */; };
 		4AA29B3C5F7CF6A1089BA6E8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2BF055D57E2D82D7AD527819 /* PrivacyInfo.xcprivacy */; };
 		4AB388784ECB1A2B48C59EA2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 393411E9E8D72B966645E246 /* Assets.xcassets */; };
@@ -29,6 +35,7 @@
 		52BC05681EFBC9C67B2D9E46 /* PocketQueueApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBAEA259E87CEE27574FF6C0 /* PocketQueueApp.swift */; };
 		5348E20FF1BB93E03F0930F2 /* LibraryModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF04847E1EC42E95D5FE168 /* LibraryModelTests.swift */; };
 		5907677A40EDF0095E48E206 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 393411E9E8D72B966645E246 /* Assets.xcassets */; };
+		6983C11F6C9A00C7766130AC /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B310D15AD5C2618454ECB2FA /* AccountView.swift */; };
 		6A5C1F17FC0C79C63CC2C94D /* BookmarkDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98E6C4B2823FECF259720F7 /* BookmarkDetailView.swift */; };
 		6D6DD75C6353BE270BBFC3F2 /* PocketQueueCore in Frameworks */ = {isa = PBXBuildFile; productRef = F9AAAC8ADF710206DA5EB44C /* PocketQueueCore */; };
 		6F4DBC89B30DB96EDF34041D /* BookmarkDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98E6C4B2823FECF259720F7 /* BookmarkDetailView.swift */; };
@@ -39,13 +46,25 @@
 		7B10BDF83A79CF20BA612275 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C88A8CEB63866DF339B6E18 /* ShareViewController.swift */; };
 		7C68DF63AD423D4E4496545B /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2BF055D57E2D82D7AD527819 /* PrivacyInfo.xcprivacy */; };
 		82D990B866BD3942CA7D6026 /* PocketQueueCore in Frameworks */ = {isa = PBXBuildFile; productRef = 821C3DA4798F8446EF856A15 /* PocketQueueCore */; };
+		87AD120FDFA40D4F52F0754F /* AuthCallbackTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F261631EBB59CAA831A0A64 /* AuthCallbackTests.swift */; };
+		8C131EC32383C708CB1DEBF6 /* HostedSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88685B516A09B2ECF2F2145 /* HostedSyncTests.swift */; };
+		8E9C460D0ED4BE433B9BA5AA /* SyncEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0081AAA390A8F789A33AF6E6 /* SyncEngineTests.swift */; };
 		9E05284AFEFC339AB307B697 /* PocketQueueApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBAEA259E87CEE27574FF6C0 /* PocketQueueApp.swift */; };
 		B27704DB409B291C10A4B5F7 /* ImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112386EFB434B5FB66E6C701 /* ImageLoader.swift */; };
 		BB3D700625C834346B6B8E29 /* PocketQueueUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75296AC68290C2742FC73B3C /* PocketQueueUITests.swift */; };
 		BF321D7EBD03BDE1375445C8 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E607C383E8055A963FB5E2E3 /* LibraryView.swift */; };
+		C0C56936FD8AE88F6B46EA14 /* FixtureAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607A3A5D02F52F56D6154969 /* FixtureAuthentication.swift */; };
+		D2BDA40121F6078042CD5F11 /* LiveBackendTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBA3C0133FAD3D5B53D57FA4 /* LiveBackendTestSupport.swift */; };
+		D3E75284C8AA8F15D15631D9 /* BookmarkDeepLinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3353501D889C8A8472A61227 /* BookmarkDeepLinkTests.swift */; };
+		D708CD7552602E486F69240B /* SyncStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B911D7A3A55C45DD6596D6 /* SyncStoreTests.swift */; };
+		D72A0E1B4F97A09B3BFC0665 /* LiveBackendTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBA3C0133FAD3D5B53D57FA4 /* LiveBackendTestSupport.swift */; };
+		DE66EF93B593BDAB585AC5E9 /* AuthValidationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30C90A8DF7A4E55D5458F752 /* AuthValidationTests.swift */; };
 		DEF9998754A5D251ED3C922B /* SharedEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798DB0DEB2791DC2473654C8 /* SharedEnvironment.swift */; };
 		E4D0684BA6773EB8516211E0 /* SharedEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798DB0DEB2791DC2473654C8 /* SharedEnvironment.swift */; };
 		EA3F4DE834BA4B534A8C0372 /* BookmarkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20C0F9316DB5319E580FDF1 /* BookmarkTests.swift */; };
+		EB1AA69629CD965AF88A9453 /* AuthTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A13A47F4F9CD9F5E5DEBE2 /* AuthTestSupport.swift */; };
+		F12485ED8E9BFC24775F05FB /* FixtureAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607A3A5D02F52F56D6154969 /* FixtureAuthentication.swift */; };
+		F2B35B2FA72F59F9A540A924 /* CloudAccountModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA94B17DB5B11E5D5259283 /* CloudAccountModelTests.swift */; };
 		F82903279ACFC1B614AB7E3F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2BF055D57E2D82D7AD527819 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
@@ -89,29 +108,44 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0081AAA390A8F789A33AF6E6 /* SyncEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncEngineTests.swift; sourceTree = "<group>"; };
 		08991B8E634F0790E592B4A8 /* PocketQueueShare.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = PocketQueueShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		112386EFB434B5FB66E6C701 /* ImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageLoader.swift; sourceTree = "<group>"; };
 		2BF055D57E2D82D7AD527819 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		2F261631EBB59CAA831A0A64 /* AuthCallbackTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthCallbackTests.swift; sourceTree = "<group>"; };
+		30C90A8DF7A4E55D5458F752 /* AuthValidationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthValidationTests.swift; sourceTree = "<group>"; };
 		31048D341E088DEA3E65A8F2 /* PocketQueueWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = PocketQueueWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		3353501D889C8A8472A61227 /* BookmarkDeepLinkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkDeepLinkTests.swift; sourceTree = "<group>"; };
 		393411E9E8D72B966645E246 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		424DC01A38A10921E53F9A16 /* PocketQueueLocal.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PocketQueueLocal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5A861172E90499B43A6ABFFB /* ThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailView.swift; sourceTree = "<group>"; };
+		607A3A5D02F52F56D6154969 /* FixtureAuthentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureAuthentication.swift; sourceTree = "<group>"; };
+		66D91CC231B69E21901AA9ED /* AuthStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthStorageTests.swift; sourceTree = "<group>"; };
 		682DC1B7FE33FDF656E455A9 /* MetadataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataTests.swift; sourceTree = "<group>"; };
 		6C88A8CEB63866DF339B6E18 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		74944B096A73A258BF6CCE0F /* PocketQueue */ = {isa = PBXFileReference; lastKnownFileType = folder; name = PocketQueue; path = .; sourceTree = SOURCE_ROOT; };
 		75296AC68290C2742FC73B3C /* PocketQueueUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PocketQueueUITests.swift; sourceTree = "<group>"; };
 		798DB0DEB2791DC2473654C8 /* SharedEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedEnvironment.swift; sourceTree = "<group>"; };
+		7C82235ED3CCE57992FE3290 /* AuthSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthSessionTests.swift; sourceTree = "<group>"; };
+		7CA94B17DB5B11E5D5259283 /* CloudAccountModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudAccountModelTests.swift; sourceTree = "<group>"; };
 		7F66ED8E584F76A91A868062 /* PocketQueueTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PocketQueueTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8203B88BAEE95CE9D67D4A37 /* PocketQueueUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PocketQueueUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		97D74B75C87E93484282D012 /* PocketQueue.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PocketQueue.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A20C0F9316DB5319E580FDF1 /* BookmarkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkTests.swift; sourceTree = "<group>"; };
 		A676610B36F9EDE66AB41A12 /* StoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreTests.swift; sourceTree = "<group>"; };
 		B23A5889CB4EF3B806C38AFF /* PocketQueueWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PocketQueueWidget.swift; sourceTree = "<group>"; };
+		B310D15AD5C2618454ECB2FA /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
+		B3A13A47F4F9CD9F5E5DEBE2 /* AuthTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthTestSupport.swift; sourceTree = "<group>"; };
 		BD3E3CC11529DD769D5F6E52 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		C8AA30A3F1F0D9C7E78CFE16 /* Backend.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Backend.json; sourceTree = "<group>"; };
+		CBA3C0133FAD3D5B53D57FA4 /* LiveBackendTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveBackendTestSupport.swift; sourceTree = "<group>"; };
 		CBAEA259E87CEE27574FF6C0 /* PocketQueueApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PocketQueueApp.swift; sourceTree = "<group>"; };
 		CEF04847E1EC42E95D5FE168 /* LibraryModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryModelTests.swift; sourceTree = "<group>"; };
+		D67ACC3F1ABC3E3AE83955CD /* GraphQLClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphQLClientTests.swift; sourceTree = "<group>"; };
 		D98E6C4B2823FECF259720F7 /* BookmarkDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkDetailView.swift; sourceTree = "<group>"; };
 		E607C383E8055A963FB5E2E3 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		F4B911D7A3A55C45DD6596D6 /* SyncStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncStoreTests.swift; sourceTree = "<group>"; };
+		F88685B516A09B2ECF2F2145 /* HostedSyncTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostedSyncTests.swift; sourceTree = "<group>"; };
 		F94A46ED234E6961A02B1FBA /* AddBookmarkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddBookmarkView.swift; sourceTree = "<group>"; };
 		FE965A48E76BC2424CA765F1 /* BookmarkRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkRow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -160,6 +194,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1324CE88C97C9C4A3992BEF3 /* Testing */ = {
+			isa = PBXGroup;
+			children = (
+				607A3A5D02F52F56D6154969 /* FixtureAuthentication.swift */,
+				CBA3C0133FAD3D5B53D57FA4 /* LiveBackendTestSupport.swift */,
+			);
+			path = Testing;
+			sourceTree = "<group>";
+		};
 		15941AE1185BC47F3CBC9C42 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -193,6 +236,7 @@
 		3544C928F0923C8CF10808D6 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				B310D15AD5C2618454ECB2FA /* AccountView.swift */,
 				BD3E3CC11529DD769D5F6E52 /* SettingsView.swift */,
 			);
 			path = Settings;
@@ -201,10 +245,21 @@
 		3A1426FF224C70F53BE0AE84 /* PocketQueueCoreTests */ = {
 			isa = PBXGroup;
 			children = (
+				2F261631EBB59CAA831A0A64 /* AuthCallbackTests.swift */,
+				7C82235ED3CCE57992FE3290 /* AuthSessionTests.swift */,
+				66D91CC231B69E21901AA9ED /* AuthStorageTests.swift */,
+				B3A13A47F4F9CD9F5E5DEBE2 /* AuthTestSupport.swift */,
+				30C90A8DF7A4E55D5458F752 /* AuthValidationTests.swift */,
+				3353501D889C8A8472A61227 /* BookmarkDeepLinkTests.swift */,
 				A20C0F9316DB5319E580FDF1 /* BookmarkTests.swift */,
+				7CA94B17DB5B11E5D5259283 /* CloudAccountModelTests.swift */,
+				D67ACC3F1ABC3E3AE83955CD /* GraphQLClientTests.swift */,
+				F88685B516A09B2ECF2F2145 /* HostedSyncTests.swift */,
 				CEF04847E1EC42E95D5FE168 /* LibraryModelTests.swift */,
 				682DC1B7FE33FDF656E455A9 /* MetadataTests.swift */,
 				A676610B36F9EDE66AB41A12 /* StoreTests.swift */,
+				0081AAA390A8F789A33AF6E6 /* SyncEngineTests.swift */,
+				F4B911D7A3A55C45DD6596D6 /* SyncStoreTests.swift */,
 			);
 			path = PocketQueueCoreTests;
 			sourceTree = "<group>";
@@ -215,6 +270,7 @@
 				CBAEA259E87CEE27574FF6C0 /* PocketQueueApp.swift */,
 				B9FDDE199C35416493F939F0 /* Library */,
 				3544C928F0923C8CF10808D6 /* Settings */,
+				1324CE88C97C9C4A3992BEF3 /* Testing */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -256,10 +312,19 @@
 			path = Shared;
 			sourceTree = "<group>";
 		};
+		C3571854B6509441AD506A4F /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				C8AA30A3F1F0D9C7E78CFE16 /* Backend.json */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
 		E1E7ED2C63A07EDFA4588D2D = {
 			isa = PBXGroup;
 			children = (
 				512EDED148797D4E656CA386 /* App */,
+				C3571854B6509441AD506A4F /* Config */,
 				A6228C9C4B1879EAEE246D40 /* Packages */,
 				15941AE1185BC47F3CBC9C42 /* Resources */,
 				C23E214F40E84C7410919FAE /* Shared */,
@@ -479,6 +544,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4AB388784ECB1A2B48C59EA2 /* Assets.xcassets in Resources */,
+				237668B76FDE06E994198658 /* Backend.json in Resources */,
 				F82903279ACFC1B614AB7E3F /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -488,6 +554,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5907677A40EDF0095E48E206 /* Assets.xcassets in Resources */,
+				3CA48B3A5056274DEBD1ACD5 /* Backend.json in Resources */,
 				4AA29B3C5F7CF6A1089BA6E8 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -532,11 +599,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				050DD639D9067862D8A757DE /* AccountView.swift in Sources */,
 				1BE94AC3A0ECF79D4F80B57F /* AddBookmarkView.swift in Sources */,
 				6F4DBC89B30DB96EDF34041D /* BookmarkDetailView.swift in Sources */,
 				0FA04CE8A339FC16D8E7C869 /* BookmarkRow.swift in Sources */,
+				C0C56936FD8AE88F6B46EA14 /* FixtureAuthentication.swift in Sources */,
 				B27704DB409B291C10A4B5F7 /* ImageLoader.swift in Sources */,
 				BF321D7EBD03BDE1375445C8 /* LibraryView.swift in Sources */,
+				D72A0E1B4F97A09B3BFC0665 /* LiveBackendTestSupport.swift in Sources */,
 				9E05284AFEFC339AB307B697 /* PocketQueueApp.swift in Sources */,
 				772B73D5EEA17E60F2EB3EE2 /* SettingsView.swift in Sources */,
 				E4D0684BA6773EB8516211E0 /* SharedEnvironment.swift in Sources */,
@@ -557,10 +627,21 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				87AD120FDFA40D4F52F0754F /* AuthCallbackTests.swift in Sources */,
+				19ADE36523988BADDDC46B28 /* AuthSessionTests.swift in Sources */,
+				1EF44BA27E60B50119B0CB43 /* AuthStorageTests.swift in Sources */,
+				EB1AA69629CD965AF88A9453 /* AuthTestSupport.swift in Sources */,
+				DE66EF93B593BDAB585AC5E9 /* AuthValidationTests.swift in Sources */,
+				D3E75284C8AA8F15D15631D9 /* BookmarkDeepLinkTests.swift in Sources */,
 				EA3F4DE834BA4B534A8C0372 /* BookmarkTests.swift in Sources */,
+				F2B35B2FA72F59F9A540A924 /* CloudAccountModelTests.swift in Sources */,
+				17F0158A58A879AB8E8DB7CB /* GraphQLClientTests.swift in Sources */,
+				8C131EC32383C708CB1DEBF6 /* HostedSyncTests.swift in Sources */,
 				5348E20FF1BB93E03F0930F2 /* LibraryModelTests.swift in Sources */,
 				1E774D906E8AE08BCB023AD4 /* MetadataTests.swift in Sources */,
 				19148EF7EAE0FD214904A328 /* StoreTests.swift in Sources */,
+				8E9C460D0ED4BE433B9BA5AA /* SyncEngineTests.swift in Sources */,
+				D708CD7552602E486F69240B /* SyncStoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -568,11 +649,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6983C11F6C9A00C7766130AC /* AccountView.swift in Sources */,
 				3A26D6DC9FEBAEE451501EBD /* AddBookmarkView.swift in Sources */,
 				6A5C1F17FC0C79C63CC2C94D /* BookmarkDetailView.swift in Sources */,
 				70F1AA18B863F1572B1E1F68 /* BookmarkRow.swift in Sources */,
+				F12485ED8E9BFC24775F05FB /* FixtureAuthentication.swift in Sources */,
 				1B385C01008386580392000D /* ImageLoader.swift in Sources */,
 				0595342C74085D83735BA98B /* LibraryView.swift in Sources */,
+				D2BDA40121F6078042CD5F11 /* LiveBackendTestSupport.swift in Sources */,
 				52BC05681EFBC9C67B2D9E46 /* PocketQueueApp.swift in Sources */,
 				20D26385A7246EDA74D9389A /* SettingsView.swift in Sources */,
 				39C864EADB276CB541DA6C7B /* SharedEnvironment.swift in Sources */,

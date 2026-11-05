@@ -3,6 +3,8 @@ import SwiftUI
 
 struct LibraryView: View {
     @Bindable var model: LibraryModel
+    let account: CloudAccountModel
+    @Binding var pendingBookmark: BookmarkDeepLink?
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showAdd = false
@@ -28,6 +30,32 @@ struct LibraryView: View {
                     .listRowInsets(EdgeInsets())
                 }
                 .listRowSeparator(.hidden)
+
+                if account.user != nil {
+                    Section {
+                        Button {
+                            showSettings = true
+                        } label: {
+                            Label(account.statusText, systemImage: account.syncError == nil ? "icloud" : "icloud.slash")
+                                .font(.subheadline)
+                        }
+                        .accessibilityIdentifier("cloudStatusButton")
+                    }
+                }
+                if let notice = account.notice {
+                    Section {
+                        Text(notice).font(.footnote).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("accountNoticeBanner")
+                        Button("Dismiss message") { account.notice = nil }
+                    }
+                }
+                if let error = account.errorMessage {
+                    Section {
+                        Label(error, systemImage: "exclamationmark.triangle")
+                            .font(.footnote)
+                        Button("Dismiss error") { account.errorMessage = nil }
+                    }
+                }
 
                 if let notice = model.notice {
                     Section {
@@ -91,8 +119,11 @@ struct LibraryView: View {
                 BookmarkDetailView(model: model, bookmarkID: id)
             }
             .sheet(isPresented: $showAdd) { AddBookmarkView(model: model) }
-            .sheet(isPresented: $showSettings) { SettingsView() }
-            .refreshable { model.requestRefresh() }
+            .sheet(isPresented: $showSettings) { SettingsView(account: account) }
+            .refreshable {
+                model.requestRefresh()
+                await account.syncNow()
+            }
         }
         .task(id: model.refreshID) {
             if scenePhase == .active {
@@ -105,11 +136,20 @@ struct LibraryView: View {
                 model.notice = nil
             }
         }
-        .onOpenURL { url in
-            guard url.scheme == "pocketqueue", url.host() == "bookmark",
-                  let id = UUID(uuidString: url.lastPathComponent) else { return }
-            path = [id]
-            model.requestRefresh()
+        .task(id: pendingBookmark) {
+            guard let bookmark = pendingBookmark else { return }
+            guard bookmark.accountID == account.user?.id else {
+                account.errorMessage = """
+                This link belongs to a different library. \
+                Switch to that account or the on-device library and open it again.
+                """
+                pendingBookmark = nil
+                return
+            }
+            await model.load()
+            guard !Task.isCancelled else { return }
+            path = [bookmark.bookmarkID]
+            pendingBookmark = nil
         }
         .alert("Something needs attention", isPresented: Binding(
             get: { model.errorMessage != nil },
@@ -137,9 +177,12 @@ struct LibraryView: View {
             Text("Save the interesting. Come back with intention.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            Label("Saved on your device. No account needed.", systemImage: "lock.shield")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            Label(
+                account.user == nil ? "Saved on your device. No account needed." : "Offline-ready. Cloud sync enabled.",
+                systemImage: "lock.shield"
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
         .padding(.vertical, 8)
     }

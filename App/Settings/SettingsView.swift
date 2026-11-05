@@ -1,6 +1,8 @@
+import PocketQueueCore
 import SwiftUI
 
 struct SettingsView: View {
+    let account: CloudAccountModel
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -13,9 +15,24 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                     Text("Version 1.0").font(.caption).foregroundStyle(.secondary)
                 }
+                Section("Optional cloud sync") {
+                    NavigationLink {
+                        AccountView(account: account)
+                    } label: {
+                        Label("Account & sync", systemImage: "person.crop.circle")
+                    }
+                    .accessibilityIdentifier("accountSettingsLink")
+                    Text(account.statusText).font(.footnote).foregroundStyle(.secondary)
+                }
                 Section("Private by design") {
-                    Label("No account, ads, or analytics", systemImage: "person.crop.circle.badge.checkmark")
-                    Label("Bookmarks and notes stay on this device", systemImage: "iphone")
+                    Label("No ads or analytics. Account optional.", systemImage: "person.crop.circle.badge.checkmark")
+                    Label("On-device and cloud libraries stay separate", systemImage: "iphone")
+                    Text("""
+                    Signing in enables a separate account library stored in Supabase. \
+                    Your existing on-device bookmarks are only uploaded when you explicitly copy them.
+                    """)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                     Text("""
                     Preview requests contact the websites you save. Those websites can see your IP address. \
                     Remote thumbnails may contact their image providers. \

@@ -27,6 +27,7 @@ targetTemplates:
       - Shared
       - path: Resources/Assets.xcassets
       - path: Resources/PrivacyInfo.xcprivacy
+      - path: Config/Backend.json
     dependencies:
       - package: PocketQueueCore
     settings:

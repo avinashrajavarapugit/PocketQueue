@@ -216,6 +216,138 @@ final class PocketQueueUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Opened from the actual Home Screen widget."].exists)
     }
 
+    func testOptionalAccountImportAndSignOutPreserveTheGuestLibrary() {
+        saveLink("https://example.com/guest-cloud", note: "Copy only with consent")
+        let article = app.staticTexts["Saved article from example.com"]
+        XCTAssertTrue(article.waitForExistence(timeout: 10))
+        openAccountSettings()
+        enterAccountCredentials(email: "test@example.com", password: "TestPassword123")
+        app.buttons["authSubmitButton"].tap()
+        XCTAssertTrue(app.buttons["cloudStatusButton"].waitForExistence(timeout: 10))
+        XCTAssertFalse(article.exists)
+        openAccountSettings()
+        XCTAssertTrue(app.secureTextFields["reauthPasswordField"].waitForExistence(timeout: 5))
+        app.buttons["copyGuestButton"].tap()
+        app.buttons["Copy to my account"].tap()
+        XCTAssertTrue(app.staticTexts["Cloud up to date"].waitForExistence(timeout: 10))
+        app.swipeUp()
+        app.buttons["signOutButton"].tap()
+        app.buttons["Sign out and clear cache"].tap()
+        XCTAssertTrue(app.buttons["settingsButton"].waitForExistence(timeout: 5))
+        for _ in 0 ..< 3 where !article.exists {
+            app.swipeUp()
+        }
+        XCTAssertTrue(article.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["cloudStatusButton"].exists)
+    }
+
+    func testLiveBackendAuthenticationAndSync() throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["POCKETQUEUE_LIVE_IOS"] == "1")
+        app.terminate()
+        app.launchArguments = ["--live-backend-testing"]
+        app.launch()
+        XCTAssertTrue(app.buttons["cloudStatusButton"].waitForExistence(timeout: 30), app.debugDescription)
+        saveLink("https://example.com/", note: "Synced from the live iOS client")
+        openAccountSettings()
+        app.buttons["syncNowButton"].tap()
+        XCTAssertTrue(app.staticTexts["Cloud up to date"].waitForExistence(timeout: 30), app.debugDescription)
+        app.swipeUp()
+        app.buttons["signOutButton"].tap()
+        app.buttons["Sign out and clear cache"].tap()
+        XCTAssertTrue(app.buttons["settingsButton"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["cloudStatusButton"].exists)
+    }
+
+    func testAccountCreationShowsEmailConfirmationAndErrorsStayVisible() {
+        openAccountSettings()
+        enterAccountCredentials(email: "fail@example.com", password: "TestPassword123")
+        app.buttons["authSubmitButton"].tap()
+        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "accountError").firstMatch
+            .waitForExistence(timeout: 5))
+        app.segmentedControls.buttons["Create account"].tap()
+        let password = app.secureTextFields["authPasswordField"]
+        password.tap()
+        password.typeText("TestPassword123")
+        app.buttons["authSubmitButton"].tap()
+        XCTAssertTrue(app.staticTexts["accountNotice"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.textFields["authEmailField"].exists)
+    }
+
+    func testAccountDeletionRequiresPasswordAndReturnsToGuestMode() {
+        openAccountSettings()
+        enterAccountCredentials(email: "test@example.com", password: "TestPassword123")
+        app.buttons["authSubmitButton"].tap()
+        XCTAssertTrue(app.buttons["cloudStatusButton"].waitForExistence(timeout: 10))
+        openAccountSettings()
+        app.swipeUp()
+        let confirmation = app.secureTextFields["deleteAccountPassword"]
+        XCTAssertTrue(confirmation.waitForExistence(timeout: 5))
+        confirmation.tap()
+        confirmation.typeText("TestPassword123")
+        app.buttons["deleteAccountButton"].tap()
+        app.buttons["Delete my account"].tap()
+        XCTAssertTrue(app.staticTexts["accountNoticeBanner"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["cloudStatusButton"].exists)
+    }
+
+    func testCorruptSavedSignInCanRecoverTheOnDeviceLibrary() {
+        app.terminate()
+        app.launchArguments += ["--corrupt-auth-session"]
+        app.launch()
+        let recover = app.buttons["recoverAccountButton"]
+        XCTAssertTrue(recover.waitForExistence(timeout: 10))
+        recover.tap()
+        app.buttons["Reset sign-in"].tap()
+        XCTAssertTrue(app.buttons["addBookmarkButton"].waitForExistence(timeout: 10))
+        saveLink("https://example.com/after-session-recovery")
+        XCTAssertTrue(app.staticTexts["Saved article from example.com"].waitForExistence(timeout: 10))
+    }
+
+    func testSyncConflictShowsBothVersionsAndCanKeepLocalChanges() {
+        app.terminate()
+        app.launchArguments += ["--sync-conflict"]
+        app.launch()
+        openAccountSettings()
+        enterAccountCredentials(email: "test@example.com", password: "TestPassword123")
+        app.buttons["authSubmitButton"].tap()
+        XCTAssertTrue(app.buttons["cloudStatusButton"].waitForExistence(timeout: 10))
+        saveLink("https://example.com/conflict", note: "Device version")
+        openAccountSettings()
+        let conflict = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "conflict-")).firstMatch
+        XCTAssertTrue(conflict.waitForExistence(timeout: 10))
+        conflict.tap()
+        XCTAssertTrue(app.staticTexts["Device version"].waitForExistence(timeout: 5))
+        let cloud = app.staticTexts["Cloud version from another device"]
+        for _ in 0 ..< 3 where !cloud.exists {
+            app.swipeUp()
+        }
+        XCTAssertTrue(cloud.waitForExistence(timeout: 5))
+        let keep = app.buttons["keepDeviceVersionButton"]
+        for _ in 0 ..< 3 where !keep.exists {
+            app.swipeUp()
+        }
+        keep.tap()
+        XCTAssertTrue(app.staticTexts["Cloud up to date"].waitForExistence(timeout: 10))
+        XCTAssertFalse(conflict.exists)
+    }
+
+    private func openAccountSettings() {
+        app.buttons["settingsButton"].tap()
+        let account = app.buttons["accountSettingsLink"]
+        XCTAssertTrue(account.waitForExistence(timeout: 5))
+        account.tap()
+    }
+
+    private func enterAccountCredentials(email: String, password: String) {
+        let emailField = app.textFields["authEmailField"]
+        XCTAssertTrue(emailField.waitForExistence(timeout: 5))
+        emailField.tap()
+        emailField.typeText(email)
+        let passwordField = app.secureTextFields["authPasswordField"]
+        passwordField.tap()
+        passwordField.typeText(password)
+    }
+
     private func saveLink(_ url: String, note: String = "") {
         app.buttons["addBookmarkButton"].tap()
         let input = app.textFields["urlField"]

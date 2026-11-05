@@ -9,7 +9,8 @@ enum SharedEnvironment {
     }
 
     static func makeStore() throws -> BookmarkStore {
-        try BookmarkStore(databaseURL: databaseURL())
+        let url = try databaseURL()
+        return try BookmarkStore(databaseURL: url, accountID: BookmarkStore.activeAccountID(databaseURL: url))
     }
 
     static func databaseURL() throws -> URL {

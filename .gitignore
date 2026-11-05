@@ -10,3 +10,5 @@ Config/Local.xcconfig
 .env
 .env.*
 !.env.example
+.local-secrets/
+BackendTestCredentials.json

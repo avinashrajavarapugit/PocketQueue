@@ -8,6 +8,7 @@ struct ReadingEntry: TimelineEntry {
     let date: Date
     let bookmark: Bookmark?
     let unavailable: Bool
+    var accountID: UUID?
 }
 
 struct ReadingConfiguration: WidgetConfigurationIntent {
@@ -39,7 +40,8 @@ struct ReadingProvider: AppIntentTimelineProvider {
             let store = try SharedEnvironment.makeStore()
             let unread = try await store.all().filter { !$0.isRead }
             return ReadingEntry(
-                date: .now, bookmark: unread.first(where: \.isFavorite) ?? unread.last, unavailable: false
+                date: .now, bookmark: unread.first(where: \.isFavorite) ?? unread.last,
+                unavailable: false, accountID: store.accountID
             )
         } catch {
             Logger(subsystem: "com.avinashrajavarapu.pocketqueue", category: "widget")
@@ -76,7 +78,7 @@ struct ReadingWidgetView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .containerBackground(.background, for: .widget)
-        .widgetURL(entry.bookmark.flatMap { URL(string: "pocketqueue://bookmark/\($0.id.uuidString)") })
+        .widgetURL(entry.bookmark.flatMap { BookmarkDeepLink(bookmarkID: $0.id, accountID: entry.accountID).url })
         .privacySensitive()
     }
 }
