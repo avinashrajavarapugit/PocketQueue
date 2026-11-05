@@ -29,6 +29,7 @@ For this project, explicit short transactions and cross-process writes are the i
 The app and share extension can save simultaneously. WAL, a busy timeout, unique URL constraint, and `BEGIN IMMEDIATE`
 provide coordination that a Swift actor alone cannot provide across processes.
 The synchronous transaction API inherits its caller's actor isolation; the mutable connection is not declared Sendable.
+Transaction closures capture immutable account IDs rather than the owning actor, and verify the active account inside the transaction.
 
 Simultaneous first opens can make `PRAGMA journal_mode=WAL` return `SQLITE_BUSY` without waiting for SQLite's
 normal busy handler. Initialization retries only that idempotent operation, with a three-second monotonic deadline

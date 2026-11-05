@@ -17,8 +17,8 @@ public actor BookmarkStore: BookmarkStoring {
 
     public func all() throws -> [Bookmark] {
         let database = try connection()
-        return try database.transaction {
-            try requireActiveAccount(database)
+        return try database.transaction { [accountID] in
+            try Self.requireActiveAccount(database, expected: accountID)
             if let accountID {
                 return try database.cloudRecords(owner: accountID).filter { !$0.isDeleted }.map(\.bookmark)
             }
@@ -29,8 +29,8 @@ public actor BookmarkStore: BookmarkStoring {
     public func save(url: URL, note: String = "", tags: [String] = []) throws -> SaveResult {
         let canonicalURL = try BookmarkURL.parse(url.absoluteString)
         let database = try connection()
-        return try database.transaction {
-            try requireActiveAccount(database)
+        return try database.transaction { [accountID] in
+            try Self.requireActiveAccount(database, expected: accountID)
             if let accountID {
                 let existing = try database.cloudRecords(owner: accountID).first { $0.bookmark.url == canonicalURL }
                 if let existing, !existing.isDeleted {
@@ -40,7 +40,13 @@ public actor BookmarkStore: BookmarkStoring {
                     id: existing?.bookmark.id ?? UUID(), url: canonicalURL, note: note, tags: tags,
                     createdAt: existing?.bookmark.createdAt ?? .now
                 )
-                try enqueue(bookmark, version: existing?.version ?? 0, deleted: false, in: database, owner: accountID)
+                try Self.enqueue(
+                    bookmark,
+                    version: existing?.version ?? 0,
+                    deleted: false,
+                    in: database,
+                    owner: accountID
+                )
                 return SaveResult(bookmark: bookmark, inserted: true)
             }
             if let existing = try database.bookmarks().first(where: { $0.url == canonicalURL }) {
@@ -54,8 +60,8 @@ public actor BookmarkStore: BookmarkStoring {
 
     public func update(id: UUID, change: BookmarkChange) throws {
         let database = try connection()
-        try database.transaction {
-            try requireActiveAccount(database)
+        try database.transaction { [accountID] in
+            try Self.requireActiveAccount(database, expected: accountID)
             let cloudRecord = try accountID.flatMap { owner in
                 try database.cloudRecords(owner: owner).first { $0.bookmark.id == id && !$0.isDeleted }
             }
@@ -84,7 +90,7 @@ public actor BookmarkStore: BookmarkStoring {
                 bookmark.metadataMessage = nil
             }
             if let accountID {
-                try enqueue(
+                try Self.enqueue(
                     bookmark,
                     version: cloudRecord?.version ?? 0,
                     deleted: false,
@@ -99,14 +105,20 @@ public actor BookmarkStore: BookmarkStoring {
 
     public func delete(id: UUID) throws {
         let database = try connection()
-        try database.transaction {
-            try requireActiveAccount(database)
+        try database.transaction { [accountID] in
+            try Self.requireActiveAccount(database, expected: accountID)
             if let accountID {
                 guard let record = try database.cloudRecords(owner: accountID).first(where: { $0.bookmark.id == id })
                 else {
                     throw BookmarkError.missingBookmark
                 }
-                try enqueue(record.bookmark, version: record.version, deleted: true, in: database, owner: accountID)
+                try Self.enqueue(
+                    record.bookmark,
+                    version: record.version,
+                    deleted: true,
+                    in: database,
+                    owner: accountID
+                )
             } else {
                 try database.delete(id)
             }
@@ -137,8 +149,8 @@ public actor BookmarkStore: BookmarkStoring {
 
     public func signOutAndRemoveAccountCache() throws -> BookmarkStore {
         let database = try connection()
-        try database.transaction {
-            try requireActiveAccount(database)
+        try database.transaction { [accountID] in
+            try Self.requireActiveAccount(database, expected: accountID)
             if let accountID {
                 try database.removeAccount(accountID)
             }
@@ -151,11 +163,11 @@ public actor BookmarkStore: BookmarkStoring {
         let owner = try requireCloudAccount()
         let database = try connection()
         return try database.transaction {
-            try requireActiveAccount(database)
+            try Self.requireActiveAccount(database, expected: owner)
             let existingURLs = try Set(database.cloudRecords(owner: owner).map(\.bookmark.url))
             let guests = try database.bookmarks().filter { !existingURLs.contains($0.url) }
             for bookmark in guests {
-                try enqueue(bookmark, version: 0, deleted: false, in: database, owner: owner)
+                try Self.enqueue(bookmark, version: 0, deleted: false, in: database, owner: owner)
             }
             return guests.count
         }
@@ -165,7 +177,7 @@ public actor BookmarkStore: BookmarkStoring {
         let owner = try requireCloudAccount()
         let database = try connection()
         return try database.transaction {
-            try requireActiveAccount(database)
+            try Self.requireActiveAccount(database, expected: owner)
             return try database.pending(owner: owner)
         }
     }
@@ -174,7 +186,7 @@ public actor BookmarkStore: BookmarkStoring {
         let owner = try requireCloudAccount()
         let database = try connection()
         return try database.transaction {
-            try requireActiveAccount(database)
+            try Self.requireActiveAccount(database, expected: owner)
             let pending = try database.pending(owner: owner)
             let conflicts = try database.conflictRecords(owner: owner)
             return pending.compactMap { change in
@@ -188,7 +200,7 @@ public actor BookmarkStore: BookmarkStoring {
         let owner = try requireCloudAccount()
         let database = try connection()
         try database.transaction {
-            try requireActiveAccount(database)
+            try Self.requireActiveAccount(database, expected: owner)
             guard let current = try database.pending(owner: owner).first(where: { $0.id == sent.id }) else { return }
             if let record = result.record, record.version <= 0 {
                 throw SyncError.invalidResponse
@@ -237,7 +249,7 @@ public actor BookmarkStore: BookmarkStoring {
         let owner = try requireCloudAccount()
         let database = try connection()
         try database.transaction {
-            try requireActiveAccount(database)
+            try Self.requireActiveAccount(database, expected: owner)
             for record in records {
                 guard record.version > 0 else { throw SyncError.invalidResponse }
                 try Self.validateCloudBookmark(record.bookmark)
@@ -278,7 +290,7 @@ public actor BookmarkStore: BookmarkStoring {
         let owner = try requireCloudAccount()
         let database = try connection()
         try database.transaction {
-            try requireActiveAccount(database)
+            try Self.requireActiveAccount(database, expected: owner)
             guard let pending = try database.pending(owner: owner).first(where: { $0.id == id }),
                   let conflict = try database.conflictRecords(owner: owner).first(where: { $0.id == id })
             else {
@@ -300,7 +312,7 @@ public actor BookmarkStore: BookmarkStoring {
                 if let remote = conflict.remote, remote.bookmark.id != id {
                     bookmark = bookmark.replacingIdentity(with: remote.bookmark)
                 }
-                try enqueue(
+                try Self.enqueue(
                     bookmark, version: conflict.remote?.version ?? 0, deleted: pending.isDeleted,
                     in: database, owner: owner
                 )
@@ -308,10 +320,10 @@ public actor BookmarkStore: BookmarkStoring {
         }
     }
 
-    private nonisolated func enqueue(
+    private static func enqueue(
         _ bookmark: Bookmark, version: Int64, deleted: Bool, in database: SQLiteConnection, owner: UUID
     ) throws {
-        try Self.validateCloudBookmark(bookmark)
+        try validateCloudBookmark(bookmark)
         try database.writeCloud(RemoteBookmark(bookmark: bookmark, version: version, isDeleted: deleted), owner: owner)
         try database.writePending(
             PendingChange(bookmark: bookmark, baseVersion: version, isDeleted: deleted),
@@ -319,8 +331,8 @@ public actor BookmarkStore: BookmarkStoring {
         )
     }
 
-    private nonisolated func requireActiveAccount(_ database: SQLiteConnection) throws {
-        guard try database.activeAccountID() == accountID else { throw SyncError.accountChanged }
+    private static func requireActiveAccount(_ database: SQLiteConnection, expected: UUID?) throws {
+        guard try database.activeAccountID() == expected else { throw SyncError.accountChanged }
     }
 
     private func requireCloudAccount() throws -> UUID {
@@ -420,7 +432,7 @@ final class SQLiteConnection {
         }
     }
 
-    // Keep the connection and callback on the caller's executor without making SQLiteConnection Sendable.
+    /// Keep the connection and callback on the caller's executor without making SQLiteConnection Sendable.
     func transaction<T>(isolation _: isolated (any Actor)? = #isolation, _ body: () throws -> T) throws -> T {
         try execute("BEGIN IMMEDIATE")
         do {
