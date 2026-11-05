@@ -86,13 +86,11 @@ final class PocketQueueUITests: XCTestCase {
         article.tap()
         app.swipeUp()
         app.buttons["shareBookmarkButton"].tap()
-        let shareAction = app.cells.matching(
-            NSPredicate(format: "label == %@ OR label == %@", "PocketQueue", "Save to PocketQueue")
-        ).firstMatch
-        if !shareAction.waitForExistence(timeout: 3) {
-            app.cells["More"].firstMatch.tap()
-        }
-        XCTAssertTrue(shareAction.waitForExistence(timeout: 5), app.debugDescription)
+        let more = app.cells["More"].firstMatch
+        XCTAssertTrue(more.waitForExistence(timeout: 10), app.debugDescription)
+        more.tap()
+        let shareAction = app.tables.cells.containing(.staticText, identifier: "PocketQueue").firstMatch
+        XCTAssertTrue(shareAction.waitForExistence(timeout: 10), app.debugDescription)
         shareAction.tap()
         let extensionSave = app.buttons["shareSaveButton"]
         let extensionReady = XCTNSPredicateExpectation(
