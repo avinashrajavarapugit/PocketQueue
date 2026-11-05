@@ -17,11 +17,19 @@ if (!local && process.env.POCKETQUEUE_RUN_LIVE_TESTS !== "1") {
 let url = configuration.url;
 let publicKey = configuration.publishableKey;
 let adminKey;
-function cliJSON(arguments_) {
+function cliOutput(arguments_) {
   try {
-    return JSON.parse(execFileSync(cli, arguments_, { encoding: "utf8" }));
+    return execFileSync(cli, arguments_, { encoding: "utf8" });
+  } catch (error) {
+    throw new Error(`Supabase CLI command failed (exit ${error.status ?? "unknown"}); sensitive output was withheld.`);
+  }
+}
+function cliJSON(arguments_) {
+  const output = cliOutput(arguments_);
+  try {
+    return JSON.parse(output);
   } catch {
-    throw new Error("Supabase CLI operation failed; potentially sensitive command output was withheld.");
+    throw new Error("Supabase CLI returned an unexpected JSON format; sensitive output was withheld.");
   }
 }
 if (local) {
@@ -160,11 +168,17 @@ try {
   console.log("PASS: query isolation, mutation isolation, and account-scoped identities/receipts.");
 
   const anonymous = await graphql(null, collection, { count: 50, after: null });
+  assert.equal(anonymous.body?.data?.bookmarksCollection?.edges?.length ?? 0, 0,
+    "Anonymous response contained private rows, even if it also reported errors.");
   assert.ok(
-    anonymous.status === 401 || anonymous.status === 403 || anonymous.body.errors?.length ||
-      anonymous.body.data?.bookmarksCollection?.edges?.length === 0,
+    anonymous.status === 401 || anonymous.status === 403 || anonymous.body?.errors?.length ||
+      anonymous.body?.data?.bookmarksCollection?.edges?.length === 0,
     "Anonymous caller could read bookmarks.",
   );
+  const anonymousWrite = await graphql(null, mutation, variables(bookmark()));
+  assert.ok(anonymousWrite.status === 401 || anonymousWrite.status === 403 || anonymousWrite.body?.errors?.length,
+    "Anonymous caller could invoke the sync mutation.");
+  assert.ok(!anonymousWrite.body?.data?.applyBookmarkChange, "Anonymous mutation returned a successful result.");
   const forged = await graphql("not-a-valid-jwt", collection, { count: 50, after: null });
   assert.ok(forged.status === 401 || forged.status === 403, "Invalid token was accepted.");
   const directInsert = await request("/rest/v1/bookmarks", {
@@ -211,7 +225,8 @@ try {
   const sessionID = JSON.parse(Buffer.from(bob.token.split(".")[1], "base64url").toString("utf8")).session_id;
   assert.match(sessionID, /^[0-9a-f-]{36}$/i);
   assert.match(bob.id, /^[0-9a-f-]{36}$/i);
-  cliJSON([
+  // Local writes can return a SQL command tag; the API assertion below verifies their actual effect.
+  cliOutput([
     "db", "query", ...(local ? [] : [`--remote=${configuration.projectRef}`]), "--yes",
     `update auth.sessions set created_at = now() - interval '1 hour' where id = '${sessionID}'::uuid and user_id = '${bob.id}'::uuid;`,
   ]);

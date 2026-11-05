@@ -308,7 +308,7 @@ public actor BookmarkStore: BookmarkStoring {
         }
     }
 
-    private func enqueue(
+    private nonisolated func enqueue(
         _ bookmark: Bookmark, version: Int64, deleted: Bool, in database: SQLiteConnection, owner: UUID
     ) throws {
         try Self.validateCloudBookmark(bookmark)
@@ -319,7 +319,7 @@ public actor BookmarkStore: BookmarkStoring {
         )
     }
 
-    private func requireActiveAccount(_ database: SQLiteConnection) throws {
+    private nonisolated func requireActiveAccount(_ database: SQLiteConnection) throws {
         guard try database.activeAccountID() == accountID else { throw SyncError.accountChanged }
     }
 
