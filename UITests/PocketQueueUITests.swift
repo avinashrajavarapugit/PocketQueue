@@ -5,7 +5,6 @@ final class PocketQueueUITests: XCTestCase {
     private var app: XCUIApplication!
 
     override func setUp() async throws {
-        try await super.setUp()
         await MainActor.run {
             continueAfterFailure = false
             app = XCUIApplication()
