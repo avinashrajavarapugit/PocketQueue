@@ -95,7 +95,11 @@ final class PocketQueueUITests: XCTestCase {
         XCTAssertTrue(shareAction.waitForExistence(timeout: 5), app.debugDescription)
         shareAction.tap()
         let extensionSave = app.buttons["shareSaveButton"]
-        XCTAssertTrue(extensionSave.waitForExistence(timeout: 5), app.debugDescription)
+        let extensionReady = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true AND enabled == true AND hittable == true"),
+            object: extensionSave
+        )
+        XCTAssertEqual(XCTWaiter.wait(for: [extensionReady], timeout: 30), .completed, app.debugDescription)
         extensionSave.tap()
         XCTAssertTrue(extensionSave.waitForNonExistence(timeout: 5), app.debugDescription)
         app.terminate()
