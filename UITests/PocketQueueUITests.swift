@@ -116,6 +116,7 @@ final class PocketQueueUITests: XCTestCase {
         let id = String(row.identifier.dropFirst("bookmark-".count))
         XCTAssertNotNil(UUID(uuidString: id))
         let link = try XCTUnwrap(URL(string: "pocketqueue://bookmark/\(id)"))
+        app.terminate()
         app.open(link)
         XCTAssertTrue(app.buttons["openOriginalButton"].waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertTrue(app.staticTexts["https://example.com/deep-link"].exists)
