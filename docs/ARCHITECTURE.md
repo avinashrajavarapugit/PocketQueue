@@ -56,6 +56,8 @@ Do not claim this implementation is optimized for hundreds of thousands of bookm
 - The library reloads on foreground entry so extension writes become visible.
 - The refresh task belongs to the navigation stack, not its root list. A cold widget deep link must load data even
   when the detail screen immediately replaces that list. A UI regression test covers this lifecycle boundary.
+- Incoming bookmark routes stay pending until the scene is active and the library has loaded. Navigation is
+  performed from the stack's task rather than racing the initial view hierarchy; a newer route cancels earlier work.
 - Widget refresh requests are hints; timeline scheduling is owned by iOS.
 
 No background polling, detached synchronization worker, or promise of continuous execution is involved.
