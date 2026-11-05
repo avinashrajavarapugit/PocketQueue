@@ -14,6 +14,14 @@ Come back when you have time. No account, analytics, or backend required.
 
 Screenshots show public sample links. A fresh installation starts with an empty library.
 
+## Demo
+
+**[Watch the screen recording (MP4, 46 seconds, 1.8 MB)](docs/demo/pocketqueue-demo.mp4)**
+
+The demo saves public Swift and Apple links with notes and tags, searches the library, favorites a bookmark,
+marks it read, and relaunches the app to show persisted state. Recorded in iPhone Simulator with live website
+previews; setup footage is trimmed. The video is silent and contains no personal browsing data.
+
 ## The important detail
 
 **Saving a link does not depend on the website responding.**
