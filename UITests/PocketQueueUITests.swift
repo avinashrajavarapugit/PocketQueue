@@ -108,8 +108,13 @@ final class PocketQueueUITests: XCTestCase {
     }
 
     func testWidgetStyleDeepLinkOpensTheSavedBookmark() throws {
-        saveLink("https://example.com/deep-link")
-        XCTAssertTrue(app.staticTexts["Saved article from example.com"].waitForExistence(timeout: 10))
+        app.terminate()
+        app.launchArguments = []
+        app.launch()
+        let host = "deeplink-\(UUID().uuidString.prefix(8).lowercased()).example"
+        let savedURL = "https://\(host)/"
+        saveLink(savedURL, note: "Opened through a system URL.")
+        XCTAssertTrue(app.staticTexts[host].firstMatch.waitForExistence(timeout: 10))
         let row = app.descendants(matching: .any).matching(
             NSPredicate(format: "identifier BEGINSWITH %@", "bookmark-")
         ).firstMatch
@@ -117,9 +122,23 @@ final class PocketQueueUITests: XCTestCase {
         XCTAssertNotNil(UUID(uuidString: id))
         let link = try XCTUnwrap(URL(string: "pocketqueue://bookmark/\(id)"))
         app.terminate()
-        app.open(link)
-        XCTAssertTrue(app.buttons["openOriginalButton"].waitForExistence(timeout: 5), app.debugDescription)
-        XCTAssertTrue(app.staticTexts["https://example.com/deep-link"].exists)
+        let safari = XCUIApplication(bundleIdentifier: "com.apple.mobilesafari")
+        safari.launch()
+        let onboarding = safari.buttons["Continue"]
+        if onboarding.waitForExistence(timeout: 3) {
+            onboarding.tap()
+        }
+        let address = safari.textFields["Address"]
+        XCTAssertTrue(address.waitForExistence(timeout: 5), safari.debugDescription)
+        address.tap()
+        address.typeText(link.absoluteString)
+        safari.buttons["Go"].tap()
+        let confirm = safari.buttons["Open"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5), safari.debugDescription)
+        confirm.tap()
+        XCTAssertTrue(app.buttons["openOriginalButton"].waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertTrue(app.staticTexts[savedURL].exists)
+        XCTAssertTrue(app.staticTexts["Opened through a system URL."].exists)
     }
 
     func testLibrarySupportsAccessibilityTextSizes() {

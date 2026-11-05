@@ -50,8 +50,10 @@ The repository includes:
 - A strict SwiftLint gate.
 - A CI build of the app, share extension, widget, and standalone variant.
 
-UI tests isolate their data using a random test identifier. Their fake website metadata is deliberately injected;
-passing those tests does not establish that every external website can be previewed.
+Ordinary UI tests isolate their data using a random test identifier. Their fake website metadata is deliberately injected;
+passing those tests does not establish that every external website can be previewed. System sharing, widget, and
+Safari URL-opening tests use the real shared library with synthetic `.example` links. The URL test launches the
+terminated app through Safari's confirmation prompt, rather than relying on XCTest's direct URL-launch implementation.
 
 Run the commands in the README. Results bundles include UI diagnostics and coverage when run through the shared scheme.
 

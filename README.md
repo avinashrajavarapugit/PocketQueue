@@ -126,7 +126,9 @@ If a custom XcodeGen installation reports missing base settings, use a complete 
 - Actual Home Screen widget installation, rendered bookmark content, and tap-through after terminating the app.
 - Bounded recovery from simultaneous first-open SQLite journal initialization.
 
-Network tests use `URLProtocol` fixtures. UI tests use an isolated database and explicitly injected fake metadata.
+Network tests use `URLProtocol` fixtures. Ordinary UI tests use an isolated database and explicitly injected fake metadata.
+System sharing, Home Screen widget, and Safari deep-link tests use the real shared library with synthetic `.example` links.
+The Safari test terminates the app, opens its custom URL through the system, and verifies the exact saved bookmark.
 Normal app launches use the real website-preview client. Test hooks are excluded from Release builds.
 
 ## Architecture and interview walkthrough

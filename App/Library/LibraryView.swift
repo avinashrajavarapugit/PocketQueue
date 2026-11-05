@@ -1,4 +1,3 @@
-import OSLog
 import PocketQueueCore
 import SwiftUI
 
@@ -9,8 +8,6 @@ struct LibraryView: View {
     @State private var showAdd = false
     @State private var showSettings = false
     @State private var path: [UUID] = []
-    @State private var pendingBookmarkID: UUID?
-    private let logger = Logger(subsystem: "com.avinashrajavarapu.pocketqueue", category: "navigation")
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -99,13 +96,6 @@ struct LibraryView: View {
         }
         .task(id: model.refreshID) {
             if scenePhase == .active {
-                if let bookmarkID = pendingBookmarkID {
-                    await model.load()
-                    guard !Task.isCancelled else { return }
-                    path = [bookmarkID]
-                    pendingBookmarkID = nil
-                    logger.info("Opened queued bookmark deep link")
-                }
                 await model.refresh()
             }
         }
@@ -118,8 +108,7 @@ struct LibraryView: View {
         .onOpenURL { url in
             guard url.scheme == "pocketqueue", url.host() == "bookmark",
                   let id = UUID(uuidString: url.lastPathComponent) else { return }
-            logger.info("Received bookmark deep link")
-            pendingBookmarkID = id
+            path = [id]
             model.requestRefresh()
         }
         .alert("Something needs attention", isPresented: Binding(
